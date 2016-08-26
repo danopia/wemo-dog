@@ -55,6 +55,8 @@ connectTo = (deviceInfo) ->
         timeDelta = thisTimeMark - lastTimeMark
         console.log friendlyName, 'ran', timeDelta, 'seconds'
         statsd.update_stats 'wemo.output.running_seconds', timeDelta, tags
+      else # Report inactive time as well
+        statsd.update_stats 'wemo.output.running_seconds', 0, tags
 
     lastUsageMark = thisUsageMark
     lastTimeMark = thisTimeMark
