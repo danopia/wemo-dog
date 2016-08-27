@@ -26,6 +26,11 @@ connectTo = (deviceInfo) ->
     'friendly_name:' + friendlyName
     'mac_address:' + macAddress
   ]
+  
+  sendLine = (pre, post) ->
+    statsd.send_data new Buffer [pre..., '#'+tags.join(','), post...].join '|'
+  increment = (counter, amt) ->
+    sendLine ["wemo.#{counter}:#{amt}", 'c']
 
   lastUsageMark = -1
   lastTimeMark = -1
@@ -47,16 +52,16 @@ connectTo = (deviceInfo) ->
 
       if thisUsageMark > lastUsageMark
         usageDelta = thisUsageMark - lastUsageMark
-        console.log friendlyName, 'consumed', usageDelta / 1000 / 60, 'watt horus'
-        statsd.update_stats 'wemo.consumed.watt_hours', usageDelta / 1000 / 60, tags
-        statsd.update_stats 'wemo.consumed.watt_minutes', usageDelta / 1000, tags
+        console.log friendlyName, 'consumed', usageDelta / 1000 / 60, 'watt-hours'
+        increment 'consumed.watt_hours', usageDelta / 1000 / 60
+        increment 'consumed.watt_minutes', usageDelta / 1000
 
       if thisTimeMark > lastTimeMark
         timeDelta = thisTimeMark - lastTimeMark
         console.log friendlyName, 'ran', timeDelta, 'seconds'
-        statsd.update_stats 'wemo.output.running_seconds', timeDelta, tags
+        increment 'output.running_seconds', timeDelta
       else # Report inactive time as well
-        statsd.update_stats 'wemo.output.running_seconds', 0, tags
+        increment 'output.running_seconds', 0
 
     lastUsageMark = thisUsageMark
     lastTimeMark = thisTimeMark
@@ -64,10 +69,10 @@ connectTo = (deviceInfo) ->
   checkStats = ->
     client.getInsightParams (err, args...) -> if err
       console.log new Date().toString(), friendlyName,  'Encountered', err
-      statsd.send_data new Buffer ['_sc', 'wemo.reachable', 2, '#'+tags.join(','), 'm:'+err.message].join '|'
+      sendLine ['_sc', 'wemo.reachable', 2], ['m:' + err.message]
     else
       reportStats args...
-      statsd.send_data new Buffer ['_sc', 'wemo.reachable', 0, '#'+tags.join(',')].join '|'
+      sendLine ['_sc', 'wemo.reachable', 0]
   
   setInterval checkStats, 5 * 1000
   checkStats()
