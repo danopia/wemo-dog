@@ -20,6 +20,7 @@ connectTo = (deviceInfo) ->
   {deviceType, friendlyName, macAddress} = deviceInfo
   return unless deviceType is 'urn:Belkin:device:insight:1'
   
+  friendlyName = process.env.WEMO_NAME_OVERRIDE ? friendlyName
   console.log 'Found Wemo device', friendlyName
   client = wemo.client deviceInfo
   tags = [
