@@ -43,6 +43,12 @@ connectTo = (deviceInfo) ->
     statsd.gauge 'wemo.output.is_enabled', bin(+state > 0), tags
     statsd.gauge 'wemo.output.is_running', bin(+state is 1), tags
     statsd.gauge 'wemo.current_draw.watts', mW / 1000, tags
+    
+    stateMap = 
+      '0': 0 # off
+      '8': 1 # idle
+      '1': 2 # running
+    sendLine ['_sc', 'wemo.output_state', stateMap[state]]
 
     thisUsageMark = +data.TodayConsumed
     thisTimeMark = +data.OnFor
