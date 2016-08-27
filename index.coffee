@@ -13,7 +13,7 @@ discover = ->
     macs.push macAddress
     connectTo deviceInfo
 
-setInterval discover, 15 * 1000
+setInterval discover, 60 * 1000 # minutely
 discover()
 
 connectTo = (deviceInfo) ->
@@ -27,7 +27,7 @@ connectTo = (deviceInfo) ->
     'mac_address:' + macAddress
   ]
   
-  sendLine = (pre, post) ->
+  sendLine = (pre, post=[]) ->
     statsd.send_data new Buffer [pre..., '#'+tags.join(','), post...].join '|'
   increment = (counter, amt) ->
     sendLine ["wemo.#{counter}:#{amt}", 'c']
